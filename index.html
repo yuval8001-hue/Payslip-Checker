@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בודק תלוש משכורת</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Noto+Serif+Hebrew:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222535;
+    --border: #2e3247;
+    --accent: #4f8cff;
+    --accent2: #7b5cf0;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e8eaf6;
+    --muted: #8b90a8;
+    --radius: 14px;
+  }
+  body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  #root { min-height: 100vh; }
+
+  .app { max-width: 860px; margin: 0 auto; padding: 32px 16px 80px; }
+
+  .hero { text-align: center; padding: 48px 0 40px; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(79,140,255,.12); border: 1px solid rgba(79,140,255,.3); color: var(--accent); border-radius: 999px; padding: 6px 16px; font-size: 13px; font-weight: 500; margin-bottom: 20px; }
+  .hero h1 { font-family: 'Noto Serif Hebrew', serif; font-size: clamp(28px,6vw,48px); font-weight: 700; line-height: 1.2; margin-bottom: 12px; background: linear-gradient(135deg, #e8eaf6 30%, #4f8cff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { color: var(--muted); font-size: 16px; max-width: 500px; margin: 0 auto; }
+
+  .steps-nav { display: flex; justify-content: center; align-items: center; gap: 0; margin: 32px 0 40px; position: relative; flex-wrap: wrap; gap: 8px; }
+  .step-pill { display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 500; transition: all .3s; cursor: default; border: 1px solid transparent; }
+  .step-pill.done { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.3); color: var(--green); }
+  .step-pill.active { background: rgba(79,140,255,.18); border-color: rgba(79,140,255,.5); color: var(--accent); }
+  .step-pill.pending { background: var(--surface); border-color: var(--border); color: var(--muted); }
+  .step-num { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: currentColor; color: var(--bg); }
+  .step-pill.pending .step-num { background: var(--muted); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; }
+  .card-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .card-title span { font-size: 22px; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .form-group input, .form-group select { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Heebo', sans-serif; font-size: 14px; transition: border-color .2s; outline: none; direction: rtl; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+  .form-group input::placeholder { color: var(--muted); }
+  .form-group select option { background: var(--surface2); }
+
+  .radio-group { display: flex; gap: 10px; flex-wrap: wrap; }
+  .radio-btn { flex: 1; min-width: 80px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; font-weight: 500; transition: all .2s; background: var(--surface2); }
+  .radio-btn.selected { border-color: var(--accent); background: rgba(79,140,255,.12); color: var(--accent); }
+
+  .btn { padding: 12px 28px; border-radius: 10px; font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all .2s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3b78f0; transform: translateY(-1px); }
+  .btn-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3); color: var(--red); }
+  .btn-row { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; flex-wrap: wrap; }
+
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 40px; text-align: center; cursor: pointer; transition: all .2s; background: var(--surface2); }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(79,140,255,.06); }
+  .upload-zone .icon { font-size: 40px; margin-bottom: 12px; }
+  .upload-zone h3 { font-size: 16px; margin-bottom: 6px; }
+  .upload-zone p { font-size: 13px; color: var(--muted); }
+  .upload-zone input[type=file] { display: none; }
+
+  .file-preview { display: flex; align-items: center; gap: 12px; padding: 14px; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.25); border-radius: 10px; margin-top: 12px; }
+  .file-preview .name { font-size: 14px; font-weight: 500; flex: 1; }
+  .file-preview .size { font-size: 12px; color: var(--muted); }
+  .remove-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px; }
+  .remove-btn:hover { color: var(--red); }
+
+  .analyzing { text-align: center; padding: 60px 20px; }
+  .spinner { width: 56px; height: 56px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .analyzing h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  .analyzing p { color: var(--muted); font-size: 14px; }
+
+  .result-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+  .result-icon { font-size: 48px; flex-shrink: 0; }
+  .result-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .result-sub { font-size: 14px; color: var(--muted); }
+  .result-score { margin-right: auto; text-align: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; }
+  .score-num { font-size: 32px; font-weight: 800; }
+  .score-label { font-size: 11px; color: var(--muted); }
+
+  .finding { padding: 16px 18px; border-radius: 10px; margin-bottom: 12px; border: 1px solid; }
+  .finding.ok { background: rgba(34,197,94,.07); border-color: rgba(34,197,94,.25); }
+  .finding.warn { background: rgba(245,158,11,.07); border-color: rgba(245,158,11,.25); }
+  .finding.error { background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.25); }
+  .finding-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .finding-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .finding.ok .finding-badge { background: rgba(34,197,94,.2); color: var(--green); }
+  .finding.warn .finding-badge { background: rgba(245,158,11,.2); color: var(--yellow); }
+  .finding.error .finding-badge { background: rgba(239,68,68,.2); color: var(--red); }
+  .finding-title { font-weight: 600; font-size: 15px; }
+  .finding-body { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .finding-action { margin-top: 8px; font-size: 13px; font-weight: 500; }
+  .finding.warn .finding-action { color: var(--yellow); }
+  .finding.error .finding-action { color: var(--red); }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .summary-box { padding: 16px; border-radius: 10px; border: 1px solid var(--border); text-align: center; background: var(--surface2); }
+  .summary-box .num { font-size: 28px; font-weight: 800; }
+  .summary-box .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .summary-box.red .num { color: var(--red); }
+  .summary-box.yellow .num { color: var(--yellow); }
+  .summary-box.green .num { color: var(--green); }
+
+  .section-title { font-size: 15px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .info-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--surface2); border: 1px solid var(--border); margin: 3px; }
+
+  .profile-section { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center; }
+  .profile-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .profile-info { flex: 1; min-width: 140px; }
+  .profile-name { font-size: 18px; font-weight: 700; }
+  .profile-role { font-size: 13px; color: var(--muted); }
+  .edit-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; background: var(--surface2); border: 1px solid var(--border); color: var(--text); transition: all .2s; }
+  .edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .tag.green { background: rgba(34,197,94,.15); color: var(--green); }
+  .tag.red { background: rgba(239,68,68,.15); color: var(--red); }
+  .tag.yellow { background: rgba(245,158,11,.15); color: var(--yellow); }
+  .tag.blue { background: rgba(79,140,255,.15); color: var(--accent); }
+
+  .missing-info { background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.25); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+  .missing-info h4 { color: var(--yellow); font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .missing-field { margin-bottom: 10px; }
+  .missing-field label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+
+  .accordion { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .accordion-header { padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 14px; background: var(--surface2); transition: background .2s; }
+  .accordion-header:hover { background: var(--surface); }
+  .accordion-body { padding: 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  @media(max-width:600px) { .summary-grid { grid-template-columns: repeat(2,1fr); } .btn-row { flex-direction: column; } .steps-nav { gap: 6px; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
+
+// ---------- helpers ----------
+function callClaude(messages, system = "") {
+  return fetch(ANTHROPIC_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      system: system || undefined,
+      messages
+    })
+  }).then(r => r.json()).then(d => d.content?.[0]?.text || "");
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    if (file.size > 15 * 1024 * 1024) {
+      rej(new Error("הקובץ גדול מדי (מקסימום 15MB). נסה לדחוס אותו או השתמש בהכנסה ידנית."));
+      return;
+    }
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(",")[1]);
+    r.onerror = () => rej(new Error("שגיאה בקריאת הקובץ. נסה שוב."));
+    r.readAsDataURL(file);
+  });
+}
+
+function fetchWithTimeout(url, options, ms = 45000) {
+  return new Promise((res, rej) => {
+    const t = setTimeout(() => rej(new Error("הבקשה לקחה יותר מדי זמן. נסה קובץ קטן יותר או הכנסה ידנית.")), ms);
+    fetch(url, options).then(r => { clearTimeout(t); res(r); }).catch(e => { clearTimeout(t); rej(e); });
+  });
+}
+
+function fmt(n) { return n ? "₪" + Number(n).toLocaleString("he-IL") : "—"; }
+
+// ---------- step definitions ----------
+const STEPS = [
+  { id: 1, label: "פרטים אישיים" },
+  { id: 2, label: "חוזה עבודה" },
+  { id: 3, label: "תלוש משכורת" },
+  { id: 4, label: "אימות נתונים" },
+  { id: 5, label: "תוצאות" },
+];
+
+// ---------- QUESTION STEP ----------
+function QuestionStep({ profile, setProfile, onNext }) {
+  const [local, setLocal] = useState({ ...profile });
+  const set = (k, v) => setLocal(p => ({ ...p, [k]: v }));
+
+  function submit() {
+    setProfile(local);
+    onNext();
+  }
+
+  const RadioGroup = ({ field, options }) => (
+    <div className="radio-group">
+      {options.map(o => (
+        <div key={o.v} className={`radio-btn ${local[field] === o.v ? "selected" : ""}`}
+          onClick={() => set(field, o.v)}>{o.l}</div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="card">
+      <div className="card-title"><span>👤</span> פרטים אישיים ותנאי עבודה</div>
+      <div className="form-grid">
+        <div className="form-group">
+          <label>שם מלא</label>
+          <input placeholder="ישראל ישראלי" value={local.name || ""} onChange={e => set("name", e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>גיל</label>
+          <input type="number" placeholder="35" value={local.age || ""} onChange={e => set("age", e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>מצב משפחתי</label>
+          <RadioGroup field="marital" options={[{v:"single",l:"רווק/ה"},{v:"married",l:"נשוי/אה"},{v:"divorced",l:"גרוש/ה"}]} />
+        </div>
+        <div className="form-group">
+          <label>מספר ילדים (עד גיל 18)</label>
+          <input type="number" placeholder="0" value={local.children || ""} onChange={e => set("children", e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>תאריך תחילת עבודה</label>
+          <input type="date" value={local.startDate || ""} onChange={e => set("startDate", e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>היקף משרה</label>
+          <RadioGroup field="scope" options={[{v:"100",l:"מלאה"},{v:"80",l:"80%"},{v:"60",l:"60%"},{v:"other",l:"אחר"}]} />
+        </div>
+        <div className="form-group">
+          <label>סוג משרה</label>
+          <RadioGroup field="type" options={[{v:"monthly",l:"חודשי"},{v:"hourly",l:"שעתי"}]} />
+        </div>
+        <div className="form-group">
+          <label>ענף / תחום</label>
+          <select value={local.sector || ""} onChange={e => set("sector", e.target.value)}>
+            <option value="">בחר ענף</option>
+            <option value="hitech">הייטק / טכנולוגיה</option>
+            <option value="finance">פיננסים / ביטוח</option>
+            <option value="education">חינוך</option>
+            <option value="health">בריאות</option>
+            <option value="retail">מסחר / קמעונאות</option>
+            <option value="construction">בנייה</option>
+            <option value="gov">ממשלה / ציבורי</option>
+            <option value="other">אחר</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label>האם יש קרן השתלמות בחוזה?</label>
+          <RadioGroup field="hasKeren" options={[{v:"yes",l:"כן"},{v:"no",l:"לא"},{v:"unknown",l:"לא יודע"}]} />
+        </div>
+        <div className="form-group">
+          <label>האם עבדת מילואים השנה?</label>
+          <RadioGroup field="miluim" options={[{v:"yes",l:"כן"},{v:"no",l:"לא"}]} />
+        </div>
+        <div className="form-group">
+          <label>האם יש ילד שנולד ב-12 חודשים האחרונים?</label>
+          <RadioGroup field="newChild" options={[{v:"yes",l:"כן"},{v:"no",l:"לא"}]} />
+        </div>
+        <div className="form-group">
+          <label>האם קיבלת העלאת שכר לאחרונה?</label>
+          <RadioGroup field="raiseRecent" options={[{v:"yes",l:"כן"},{v:"no",l:"לא"}]} />
+        </div>
+      </div>
+      <div className="btn-row">
+        <button className="btn btn-primary" onClick={submit}>המשך לחוזה <span>←</span></button>
+      </div>
+    </div>
+  );
+}
+
+// ---------- CONTRACT UPLOAD ----------
+function ContractStep({ profile, setProfile, contract, setContract, onNext, onBack }) {
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [drag, setDrag] = useState(false);
+  const [error, setError] = useState(null);
+  const [mode, setMode] = useState("choice"); // "choice" | "upload" | "manual"
+  const [mc, setMc] = useState({});
+  const inputRef = useRef();
+
+  const FIELDS = [
+    ["שכר ברוטו חודשי ₪", "salary"],
+    ["קרן השתלמות מעסיק %", "kerenPercent"],
+    ["קרן השתלמות עובד %", "kerenEmployeePercent"],
+    ["פנסיה מעסיק %", "pensionEmployer"],
+    ["פנסיה עובד %", "pensionEmployee"],
+    ["פיצויים %", "compensation"],
+    ["ימי חופש שנתיים", "vacationDays"],
+    ["נסיעות חודשי ₪", "travelAllowance"],
+  ];
+
+  const [status, setStatus] = useState(""); // status message during loading
+
+  async function processFile(f) {
+    setFile(f);
+    setError(null);
+    setStatus("קורא את הקובץ...");
+    setLoading(true);
+    let b64, mediaType;
+    try {
+      b64 = await fileToBase64(f);
+    } catch(e) {
+      setError(e.message);
+      setLoading(false);
+      setStatus("");
+      return;
+    }
+    mediaType = "image/jpeg";
+    if (f.type === "application/pdf") mediaType = "application/pdf";
+    else if (f.type === "image/png") mediaType = "image/png";
+    else if (f.type === "image/webp") mediaType = "image/webp";
+
+    setStatus("שולח לניתוח... (עד 30 שניות)");
+    try {
+      const resp = await fetchWithTimeout(ANTHROPIC_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: `אתה מומחה לחוזי עבודה ישראלים. חלץ מהמסמך את הפרטים הבאים ב-JSON בלבד, ללא שום טקסט נוסף לפני או אחרי:
+{"salary": <שכר ברוטו חודשי מספר בלבד>, "scope": <היקף משרה באחוזים>, "kerenPercent": <אחוז קרן השתלמות מעסיק>, "kerenEmployeePercent": <אחוז עובד>, "pensionEmployer": <אחוז פנסיה מעסיק>, "pensionEmployee": <אחוז פנסיה עובד>, "compensation": <אחוז פיצויים>, "vacationDays": <ימי חופש שנתיים>, "sickDays": <ימי מחלה>, "travelAllowance": <דמי נסיעה חודשיים>, "extra": ""}
+אם שדה לא קיים השתמש ב-null. החזר JSON בלבד.`,
+          messages: [{
+            role: "user",
+            content: [{
+              type: "document",
+              source: { type: "base64", media_type: mediaType, data: b64 }
+            }, { type: "text", text: "חלץ פרטי חוזה עבודה. JSON בלבד." }]
+          }]
+        })
+      }, 45000);
+      const data = await resp.json();
+      if (data.error) throw new Error("שגיאת שרת: " + (data.error.message || "נסה שוב"));
+      setStatus("מעבד תוצאות...");
+      const text = data.content?.[0]?.text || "{}";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setContract(parsed);
+      setMc(Object.fromEntries(Object.entries(parsed).map(([k,v]) => [k, v ?? ""])));
+      setStatus("");
+    } catch(e) {
+      console.error(e);
+      setError(e.message || "לא הצלחנו לנתח את הקובץ. עבור להכנסה ידנית.");
+      setStatus("");
+      setContract({});
+    }
+    setLoading(false);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault(); setDrag(false);
+    const f = e.dataTransfer.files[0];
+    if (f) processFile(f);
+  }
+  function handleChange(e) {
+    const f = e.target.files[0];
+    if (f) processFile(f);
+  }
+  function saveManual() {
+    setContract(mc);
+    onNext();
+  }
+  function skipContract() {
+    setContract({ skipped: true });
+    onNext();
+  }
+
+  // ---- CHOICE screen ----
+  if (mode === "choice") {
+    return (
+      <div className="card">
+        <div className="card-title"><span>📄</span> פרטי חוזה עבודה</div>
+        <p style={{color:"var(--muted)",fontSize:14,marginBottom:24}}>בחר איך תרצה להזין את פרטי החוזה:</p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:8}}>
+          <div onClick={() => setMode("upload")} style={{cursor:"pointer",border:"1px solid var(--border)",borderRadius:12,padding:"22px 16px",textAlign:"center",background:"var(--surface2)",transition:"all .2s"}}
+            onMouseOver={e=>e.currentTarget.style.borderColor="var(--accent)"}
+            onMouseOut={e=>e.currentTarget.style.borderColor="var(--border)"}>
+            <div style={{fontSize:36,marginBottom:10}}>📎</div>
+            <div style={{fontWeight:700,fontSize:15,marginBottom:6}}>העלאת קובץ</div>
+            <div style={{fontSize:12,color:"var(--muted)"}}>PDF או תמונה<br/>חילוץ אוטומטי</div>
+          </div>
+          <div onClick={() => setMode("manual")} style={{cursor:"pointer",border:"1px solid var(--border)",borderRadius:12,padding:"22px 16px",textAlign:"center",background:"var(--surface2)",transition:"all .2s"}}
+            onMouseOver={e=>e.currentTarget.style.borderColor="var(--accent)"}
+            onMouseOut={e=>e.currentTarget.style.borderColor="var(--border)"}>
+            <div style={{fontSize:36,marginBottom:10}}>📝</div>
+            <div style={{fontWeight:700,fontSize:15,marginBottom:6}}>הכנסה ידנית</div>
+            <div style={{fontSize:12,color:"var(--muted)"}}>מלא פרטים<br/>בעצמך</div>
+          </div>
+        </div>
+        <div style={{textAlign:"center",marginTop:16}}>
+          <span onClick={skipContract} style={{fontSize:13,color:"var(--muted)",cursor:"pointer",textDecoration:"underline"}}>
+            דלג – אין לי חוזה כרגע
+          </span>
+        </div>
+        <div className="btn-row">
+          <button className="btn btn-secondary" onClick={onBack}>→ חזור</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- UPLOAD screen ----
+  if (mode === "upload") {
+    return (
+      <div className="card">
+        <div className="card-title"><span>📎</span> העלאת חוזה עבודה</div>
+        <div className={`upload-zone ${drag ? "drag" : ""}`}
+          onClick={() => !loading && inputRef.current.click()}
+          onDragOver={e => { e.preventDefault(); setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={handleDrop}>
+          <div className="icon">{loading ? "⏳" : "📎"}</div>
+          <h3>{loading ? "מנתח..." : "גרור חוזה לכאן או לחץ לבחירה"}</h3>
+          <p>PDF, JPG, PNG · הנתונים מחולצים אוטומטית</p>
+          <input ref={inputRef} type="file" accept="application/pdf,image/*" onChange={handleChange} />
+        </div>
+        {loading && (
+          <div style={{textAlign:"center",padding:"16px",background:"var(--surface2)",borderRadius:10,marginTop:12}}>
+            <div className="spinner" style={{margin:"0 auto 10px"}}></div>
+            <p style={{color:"var(--accent)",fontSize:14,fontWeight:600}}>{status}</p>
+            <p style={{color:"var(--muted)",fontSize:12,marginTop:4}}>אם זה לוקח יותר מ-30 שניות – עבור להכנסה ידנית</p>
+          </div>
+        )}
+        {error && (
+          <div style={{background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.25)",borderRadius:10,padding:"12px 16px",marginTop:12,fontSize:13,color:"var(--red)"}}>
+            ⚠️ {error}
+          </div>
+        )}
+        {file && !loading && contract && Object.keys(contract).filter(k=>k!=="skipped").length > 0 && (
+          <div>
+            <div className="file-preview">
+              <span>✅</span>
+              <div className="name">{file.name} – נחלץ בהצלחה</div>
+              <button className="remove-btn" onClick={() => { setFile(null); setContract({}); setError(null); }}>✕</button>
+            </div>
+            <div className="form-grid" style={{marginTop:14}}>
+              {FIELDS.map(([lbl, k]) => (
+                <div className="form-group" key={k}>
+                  <label>{lbl}</label>
+                  <input value={contract[k] ?? ""} onChange={e => setContract(c => ({...c,[k]:e.target.value}))} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div style={{marginTop:14,fontSize:13}}>
+          <span onClick={() => setMode("manual")} style={{cursor:"pointer",color:"var(--accent)",textDecoration:"underline"}}>
+            📝 עבור להכנסה ידנית במקום
+          </span>
+        </div>
+        <div className="btn-row">
+          <button className="btn btn-secondary" onClick={() => setMode("choice")}>→ חזור</button>
+          {/* Always enabled – user can continue even if extraction failed */}
+          <button className="btn btn-primary" onClick={() => {
+            if (!contract || Object.keys(contract).filter(k=>k!=="skipped").length === 0) {
+              setMode("manual");
+            } else {
+              onNext();
+            }
+          }}>המשך לתלוש ←</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- MANUAL screen ----
+  return (
+    <div className="card">
+      <div className="card-title"><span>📝</span> פרטי חוזה – הכנסה ידנית</div>
+      <p style={{color:"var(--muted)",fontSize:13,marginBottom:16}}>מלא את הפרטים שידועים לך. שדות לא ידועים ניתן להשאיר ריקים.</p>
+      <div className="form-grid">
+        {FIELDS.map(([lbl, k]) => (
+          <div className="form-group" key={k}>
+            <label>{lbl}</label>
+            <input placeholder="—" value={mc[k] || ""} onChange={e => setMc(c => ({...c,[k]:e.target.value}))} />
+          </div>
+        ))}
+      </div>
+      <div style={{marginTop:14,fontSize:13}}>
+        <span onClick={() => setMode("upload")} style={{cursor:"pointer",color:"var(--accent)",textDecoration:"underline"}}>
+          📎 עבור להעלאת קובץ במקום
+        </span>
+      </div>
+      <div className="btn-row">
+        <button className="btn btn-secondary" onClick={() => setMode("choice")}>→ חזור</button>
+        <button className="btn btn-primary" onClick={saveManual}>המשך לתלוש ←</button>
+      </div>
+    </div>
+  );
+}
+
+// ---------- PAYSLIP UPLOAD ----------
+function PayslipStep({ profile, contract, onResult, onBack }) {
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [drag, setDrag] = useState(false);
+  const [month, setMonth] = useState("");
+  const inputRef = useRef();
+
+  async function analyze(f) {
+    setFile(f);
+    setLoading(true);
+    try {
+      const b64 = await fileToBase64(f);
+      const mediaType = f.type === "application/pdf" ? "application/pdf" : "image/jpeg";
+
+      const systemPrompt = `אתה חשב שכר ומומחה לדיני עבודה ישראלים. עליך לבדוק תלוש משכורת ישראלי לעומת נתוני החוזה והחוק. 
+      
+נתוני העובד: ${JSON.stringify(profile)}
+נתוני החוזה: ${JSON.stringify(contract)}
+
+בדוק את הסעיפים הבאים:
+1. שכר בסיס – תואם חוזה?
+2. שעות נוספות (אם יש) – חישוב נכון? (125% ל-2 שעות ראשונות, 150% אחר כך)
+3. ניכוי מס הכנסה – סביר לפי מדרגות?
+4. ביטוח לאומי – ניכוי נכון? (3.5% עד תקרה)
+5. ביטוח בריאות – מנוכה?
+6. פנסיה – הפרשות מעסיק ועובד תואמות חוזה? (מינימום חוק: 6% מעסיק, 6% עובד+פיצויים 6%)
+7. קרן השתלמות – אם יש בחוזה, האם מופרשת? ובאיזה אחוז?
+8. דמי הבראה – האם שולמו? (אם ותק > שנה: 1+ ימים שנה, 2 ימים אחרי שנתיים)
+9. דמי נסיעה – האם שולמו לפי חוזה?
+10. ימי חופשה/מחלה צבורים – האם מדווח?
+11. תאריך הוצאת התלוש – האם בזמן? (עד 9 לחודש שלאחר החודש המדווח)
+12. האם תלוש כולל את כל השדות המחויבים בחוק?
+
+החזר JSON בדיוק בפורמט הזה, ללא שום טקסט אחר:
+{
+  "month": "חודש שנה",
+  "grossSalary": <שכר ברוטו בתלוש>,
+  "netSalary": <שכר נטו>,
+  "taxDeducted": <ניכוי מס>,
+  "bituachLeumi": <דמי ביטוח לאומי>,
+  "pensionEmployee": <פנסיה עובד>,
+  "pensionEmployer": <פנסיה מעסיק>,
+  "keren": <קרן השתלמות מעסיק>,
+  "vacation": <ימי חופש שנותרו>,
+  "sick": <ימי מחלה שנותרו>,
+  "score": <ציון 0-100>,
+  "findings": [
+    {
+      "type": "ok|warn|error",
+      "title": "כותרת",
+      "description": "תיאור מה נמצא",
+      "action": "מה לעשות (אם יש בעיה)"
+    }
+  ],
+  "missingInfo": ["שאלה לשאול אם חסר מידע"]
+}`;
+
+      const resp = await fetch(ANTHROPIC_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{
+            role: "user",
+            content: [{
+              type: "document",
+              source: { type: "base64", media_type: mediaType, data: b64 }
+            }, { type: "text", text: `בדוק תלוש משכורת${month ? " לחודש " + month : ""}. החזר JSON בלבד.` }]
+          }]
+        })
+      });
+      const data = await resp.json();
+      const text = data.content?.[0]?.text || "{}";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const result = JSON.parse(clean);
+      onResult(result);
+    } catch(e) {
+      console.error(e);
+      onResult({ error: true, findings: [{ type: "warn", title: "שגיאה בניתוח", description: "לא ניתן היה לנתח את התלוש. נסה להעלות תמונה ברורה יותר.", action: "" }], score: 0 });
+    }
+    setLoading(false);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault(); setDrag(false);
+    const f = e.dataTransfer.files[0];
+    if (f) analyze(f);
+  }
+
+  function handleChange(e) {
+    const f = e.target.files[0];
+    if (f) analyze(f);
+  }
+
+  return (
+    <div className="card">
+      <div className="card-title"><span>🧾</span> העלאת תלוש משכורת</div>
+      <div className="form-group" style={{marginBottom:16,maxWidth:220}}>
+        <label>חודש התלוש (אופציונלי)</label>
+        <input type="month" value={month} onChange={e => setMonth(e.target.value)} />
+      </div>
+      {!loading && (
+        <div className={`upload-zone ${drag ? "drag" : ""}`}
+          onClick={() => !file && inputRef.current.click()}
+          onDragOver={e => { e.preventDefault(); setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={handleDrop}>
+          {file ? (
+            <div>
+              <div style={{fontSize:36,marginBottom:8}}>🧾</div>
+              <h3>{file.name}</h3>
+              <p style={{color:"var(--green)"}}>מנתח...</p>
+            </div>
+          ) : (
+            <>
+              <div className="icon">📤</div>
+              <h3>גרור תלוש משכורת לכאן</h3>
+              <p>PDF, JPG או PNG · הניתוח אוטומטי ומיידי</p>
+            </>
+          )}
+          <input ref={inputRef} type="file" accept="application/pdf,image/*" onChange={handleChange} />
+        </div>
+      )}
+      {loading && (
+        <div className="analyzing">
+          <div className="spinner"></div>
+          <h3>מנתח את התלוש...</h3>
+          <p>בודק מול חוזה העבודה, חוק הגנת השכר ותקנות ביטוח לאומי</p>
+        </div>
+      )}
+      <div className="btn-row">
+        <button className="btn btn-secondary" onClick={onBack}>→ חזור</button>
+      </div>
+    </div>
+  );
+}
+
+
+// ---------- VERIFY STEP ----------
+function VerifyStep({ contract, payslipData, setPayslipData, onNext, onBack }) {
+  const [cd, setCd] = useState({ ...contract });
+  const [pd, setPd] = useState({ ...payslipData });
+
+  const CONTRACT_FIELDS = [
+    ["שכר ברוטו לפי חוזה ₪", "salary"],
+    ["קרן השתלמות מעסיק %", "kerenPercent"],
+    ["קרן השתלמות עובד %", "kerenEmployeePercent"],
+    ["פנסיה מעסיק %", "pensionEmployer"],
+    ["פנסיה עובד %", "pensionEmployee"],
+    ["פיצויים %", "compensation"],
+    ["ימי חופש שנתיים", "vacationDays"],
+    ["נסיעות חודשי ₪", "travelAllowance"],
+  ];
+
+  const PAYSLIP_FIELDS = [
+    ["חודש התלוש", "month"],
+    ["שכר ברוטו בתלוש ₪", "grossSalary"],
+    ["שכר נטו ₪", "netSalary"],
+    ["ניכוי מס הכנסה ₪", "taxDeducted"],
+    ["ביטוח לאומי ₪", "bituachLeumi"],
+    ["פנסיה עובד ₪", "pensionEmployee"],
+    ["פנסיה מעסיק ₪", "pensionEmployer"],
+    ["קרן השתלמות ₪", "keren"],
+    ["ימי חופש שנותרו", "vacation"],
+    ["ימי מחלה שנותרו", "sick"],
+  ];
+
+  function confirm() {
+    const merged = { ...pd, _contractOverride: cd };
+    setPayslipData(merged);
+    onNext(merged);
+  }
+
+  const hasContractData = cd && Object.values(cd).some(v => v !== null && v !== "" && v !== undefined && v !== "skipped");
+  const hasPayslipData = pd && Object.values(pd).some(v => v !== null && v !== "" && v !== undefined);
+
+  return (
+    <div>
+      <div style={{background:"rgba(79,140,255,.08)",border:"1px solid rgba(79,140,255,.25)",borderRadius:12,padding:"16px 20px",marginBottom:20,fontSize:14,color:"var(--accent)"}}>
+        <strong>✅ הנתונים חולצו מהקבצים שלך.</strong> בדוק שהכל נכון ותקן אם צריך לפני הניתוח.
+      </div>
+
+      {hasPayslipData && (
+        <div className="card">
+          <div className="card-title"><span>🧾</span> נתוני תלוש – לאימות ותיקון</div>
+          <div className="form-grid">
+            {PAYSLIP_FIELDS.map(([lbl, k]) => (
+              <div className="form-group" key={k}>
+                <label>{lbl}</label>
+                <input
+                  value={pd[k] ?? ""}
+                  onChange={e => setPd(p => ({ ...p, [k]: e.target.value }))}
+                  style={{ borderColor: (pd[k] === null || pd[k] === "" || pd[k] === undefined) ? "rgba(245,158,11,.5)" : "" }}
+                />
+                {(pd[k] === null || pd[k] === "" || pd[k] === undefined) && (
+                  <span style={{fontSize:11,color:"var(--yellow)"}}>⚠️ לא זוהה – מלא ידנית</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {hasContractData && (
+        <div className="card">
+          <div className="card-title"><span>📄</span> נתוני חוזה – לאימות ותיקון</div>
+          <div className="form-grid">
+            {CONTRACT_FIELDS.map(([lbl, k]) => (
+              <div className="form-group" key={k}>
+                <label>{lbl}</label>
+                <input
+                  value={cd[k] ?? ""}
+                  onChange={e => setCd(c => ({ ...c, [k]: e.target.value }))}
+                  style={{ borderColor: (cd[k] === null || cd[k] === "" || cd[k] === undefined) ? "rgba(245,158,11,.5)" : "" }}
+                />
+                {(cd[k] === null || cd[k] === "" || cd[k] === undefined) && (
+                  <span style={{fontSize:11,color:"var(--yellow)"}}>⚠️ לא זוהה – מלא ידנית</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!hasContractData && !hasPayslipData && (
+        <div className="card" style={{textAlign:"center",padding:40}}>
+          <div style={{fontSize:40,marginBottom:12}}>📭</div>
+          <p style={{color:"var(--muted)"}}>לא נמצאו נתונים לאימות. תוכל להמשיך לניתוח.</p>
+        </div>
+      )}
+
+      <div className="btn-row">
+        <button className="btn btn-secondary" onClick={onBack}>→ חזור</button>
+        <button className="btn btn-primary" onClick={confirm}>אשר ועבור לניתוח ←</button>
+      </div>
+    </div>
+  );
+}
+
+// ---------- RESULTS ----------
+function ResultsStep({ result, profile, contract, onEdit, onNewPayslip }) {
+  const [missingAnswers, setMissingAnswers] = useState({});
+  const [showMissing, setShowMissing] = useState(result?.missingInfo?.length > 0);
+  const [openFaq, setOpenFaq] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+
+  if (!result) return null;
+
+  const errors = result.findings?.filter(f => f.type === "error") || [];
+  const warns = result.findings?.filter(f => f.type === "warn") || [];
+  const oks = result.findings?.filter(f => f.type === "ok") || [];
+  const score = result.score || 0;
+  const scoreColor = score >= 80 ? "var(--green)" : score >= 60 ? "var(--yellow)" : "var(--red)";
+
+  const faqs = [
+    { q: "מה עושים אם מצאנו טעות בתלוש?", a: "פנו לחשבת השכר בכתב (מייל) עם ציון הסעיף הספציפי. שמרו העתק. אם לא מתוקן תוך 30 יום, ניתן לפנות לרשות האוכפת ביחסי עבודה." },
+    { q: "האם ניתן לתבוע למפרע?", a: "כן! תביעות שכר ניתן להגיש עד 7 שנים אחורה. מומלץ לשמור את כל תלושי המשכורת." },
+    { q: "מה עושים אם קרן ההשתלמות לא הופרשה?", a: "מדובר בהפרה של חוזה העבודה. פנו בכתב למעסיק ודרשו תיקון רטרואקטיבי." },
+  ];
+
+  return (
+    <div>
+      {/* profile bar */}
+      <div className="card" style={{padding:"18px 24px"}}>
+        <div className="profile-section">
+          <div className="profile-avatar">👤</div>
+          <div className="profile-info">
+            <div className="profile-name">{profile.name || "עובד/ת"}</div>
+            <div className="profile-role">{result.month || "תלוש נוכחי"} · {profile.sector || ""}</div>
+          </div>
+          <button className="edit-btn" onClick={onEdit}>✏️ עריכת פרופיל</button>
+          <button className="edit-btn" onClick={onNewPayslip}>📤 תלוש חדש</button>
+        </div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          {profile.miluim === "yes" && <span className="tag blue">🎖️ שרת מילואים</span>}
+          {profile.newChild === "yes" && <span className="tag green">👶 ילד חדש</span>}
+          {profile.raiseRecent === "yes" && <span className="tag yellow">📈 העלאת שכר</span>}
+          {profile.hasKeren === "yes" && <span className="tag blue">💰 קרן השתלמות</span>}
+        </div>
+      </div>
+
+      {/* score + summary */}
+      <div className="card">
+        <div className="result-header">
+          <div className="result-icon">{score >= 80 ? "✅" : score >= 60 ? "⚠️" : "❌"}</div>
+          <div>
+            <div className="result-title">
+              {score >= 80 ? "התלוש תקין ברובו" : score >= 60 ? "נמצאו ליקויים" : "נמצאו בעיות משמעותיות"}
+            </div>
+            <div className="result-sub">על בסיס חוזה העבודה וחוק הגנת השכר</div>
+          </div>
+          <div className="result-score">
+            <div className="score-num" style={{color:scoreColor}}>{score}</div>
+            <div className="score-label">ציון מ-100</div>
+          </div>
+        </div>
+
+        <div className="summary-grid">
+          <div className="summary-box red"><div className="num">{errors.length}</div><div className="lbl">בעיות קריטיות</div></div>
+          <div className="summary-box yellow"><div className="num">{warns.length}</div><div className="lbl">לבדוק</div></div>
+          <div className="summary-box green"><div className="num">{oks.length}</div><div className="lbl">תקין</div></div>
+        </div>
+
+        {/* financial summary */}
+        <div className="form-grid" style={{gap:10,marginBottom:4}}>
+          {[
+            ["שכר ברוטו", fmt(result.grossSalary)],
+            ["שכר נטו", fmt(result.netSalary)],
+            ["מס הכנסה", fmt(result.taxDeducted)],
+            ["ביטוח לאומי", fmt(result.bituachLeumi)],
+            ["פנסיה עובד", fmt(result.pensionEmployee)],
+            ["פנסיה מעסיק", fmt(result.pensionEmployer)],
+            ["קרן השתלמות", fmt(result.keren)],
+          ].map(([l,v]) => (
+            <div key={l} style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"10px 14px"}}>
+              <div style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>{l}</div>
+              <div style={{fontWeight:700,fontSize:16}}>{v}</div>
+            </div>
+          ))}
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"10px 14px"}}>
+            <div style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>חופשה נותרת</div>
+            <div style={{fontWeight:700,fontSize:16}}>{result.vacation != null ? result.vacation + " ימים" : "—"}</div>
+          </div>
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"10px 14px"}}>
+            <div style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>מחלה נותרת</div>
+            <div style={{fontWeight:700,fontSize:16}}>{result.sick != null ? result.sick + " ימים" : "—"}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* missing info */}
+      {showMissing && result.missingInfo?.length > 0 && (
+        <div className="missing-info">
+          <h4>❓ מידע חסר – נדרש לבדיקה מלאה</h4>
+          {result.missingInfo.map((q, i) => (
+            <div className="missing-field" key={i}>
+              <label>{q}</label>
+              <input style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"8px 12px",color:"var(--text)",fontFamily:"Heebo, sans-serif",fontSize:13,outline:"none",width:"100%",direction:"rtl"}}
+                placeholder="תשובתך..."
+                value={missingAnswers[i] || ""}
+                onChange={e => setMissingAnswers(a => ({...a,[i]:e.target.value}))} />
+            </div>
+          ))}
+          <button className="btn btn-secondary" style={{marginTop:8,fontSize:13}}
+            onClick={() => setShowMissing(false)}>סגור שאלות</button>
+        </div>
+      )}
+
+      {/* findings */}
+      {errors.length > 0 && (
+        <>
+          <div className="section-title">❌ בעיות קריטיות</div>
+          {errors.map((f, i) => (
+            <div className="finding error" key={i}>
+              <div className="finding-head">
+                <span className="finding-badge">שגיאה</span>
+                <span className="finding-title">{f.title}</span>
+              </div>
+              <div className="finding-body">{f.description}</div>
+              {f.action && <div className="finding-action">👉 {f.action}</div>}
+            </div>
+          ))}
+        </>
+      )}
+      {warns.length > 0 && (
+        <>
+          <div className="section-title">⚠️ לבדוק עם חשבת השכר</div>
+          {warns.map((f, i) => (
+            <div className="finding warn" key={i}>
+              <div className="finding-head">
+                <span className="finding-badge">לבדוק</span>
+                <span className="finding-title">{f.title}</span>
+              </div>
+              <div className="finding-body">{f.description}</div>
+              {f.action && <div className="finding-action">💬 {f.action}</div>}
+            </div>
+          ))}
+        </>
+      )}
+      {oks.length > 0 && (
+        <>
+          <div className="section-title">✅ תקין</div>
+          {oks.map((f, i) => (
+            <div className="finding ok" key={i}>
+              <div className="finding-head">
+                <span className="finding-badge">תקין</span>
+                <span className="finding-title">{f.title}</span>
+              </div>
+              <div className="finding-body">{f.description}</div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* FAQ */}
+      <div className="section-title">💡 שאלות נפוצות</div>
+      {faqs.map((faq, i) => (
+        <div className="accordion" key={i}>
+          <div className="accordion-header" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+            {faq.q}
+            <span>{openFaq === i ? "▲" : "▼"}</span>
+          </div>
+          {openFaq === i && <div className="accordion-body">{faq.a}</div>}
+        </div>
+      ))}
+
+      <div style={{fontSize:12,color:"var(--muted)",textAlign:"center",marginTop:24,lineHeight:1.6}}>
+        * המידע מבוסס על חוק הגנת השכר, כל-זכות וצווי הרחבה. אינו מהווה ייעוץ משפטי.<br/>
+        לבעיות מורכבות מומלץ להתייעץ עם עורך דין לדיני עבודה.
+      </div>
+    </div>
+  );
+}
+
+// ---------- MAIN APP ----------
+function App() {
+  const [step, setStep] = useState(1);
+  const [profile, setProfile] = useState({});
+  const [contract, setContract] = useState({});
+  const [result, setResult] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+
+  const [payslipRaw, setPayslipRaw] = useState(null);
+
+  function handleResult(r) {
+    setPayslipRaw(r);
+    setStep(4); // go to verify
+  }
+
+  function handleVerified(verifiedData) {
+    setResult(verifiedData);
+    setStep(5);
+  }
+
+  function handleEdit() {
+    setEditingProfile(true);
+    setStep(1);
+  }
+
+  function handleNewPayslip() {
+    setStep(3);
+  }
+
+  return (
+    <div className="app">
+      <div className="hero">
+        <div className="hero-badge">🔍 בודק תלוש משכורת AI</div>
+        <h1>האם המעסיק שלך<br/>משלם לך נכון?</h1>
+        <p>העלה חוזה ותלוש – נבדוק הכל מול החוק בשניות</p>
+      </div>
+
+      <div className="steps-nav">
+        {STEPS.map(s => (
+          <div key={s.id} className={`step-pill ${step > s.id ? "done" : step === s.id ? "active" : "pending"}`}>
+            <div className="step-num">{step > s.id ? "✓" : s.id}</div>
+            {s.label}
+          </div>
+        ))}
+      </div>
+
+      {step === 1 && (
+        <QuestionStep
+          profile={profile}
+          setProfile={setProfile}
+          onNext={() => setStep(2)}
+        />
+      )}
+      {step === 2 && (
+        <ContractStep
+          profile={profile}
+          setProfile={setProfile}
+          contract={contract}
+          setContract={setContract}
+          onNext={() => setStep(3)}
+          onBack={() => setStep(1)}
+        />
+      )}
+      {step === 3 && (
+        <PayslipStep
+          profile={profile}
+          contract={contract}
+          onResult={handleResult}
+          onBack={() => setStep(2)}
+        />
+      )}
+      {step === 4 && (
+        <VerifyStep
+          contract={contract}
+          payslipData={payslipRaw || {}}
+          setPayslipData={setPayslipRaw}
+          onNext={(verified) => { setResult(verified || payslipRaw); setStep(5); }}
+          onBack={() => setStep(3)}
+        />
+      )}
+      {step === 5 && (
+        <ResultsStep
+          result={result}
+          profile={profile}
+          contract={contract}
+          onEdit={handleEdit}
+          onNewPayslip={handleNewPayslip}
+        />
+      )}
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+</script>
+</body>
+</html>
